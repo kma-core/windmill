@@ -1,0 +1,21 @@
+app = "kma-windmill-worker"
+primary_region = "fra"
+
+[build]
+  image = "ghcr.io/windmill-labs/windmill:main"
+
+[env]
+  MODE = "worker"
+  WORKER_GROUP = "default"
+  RUST_LOG = "info"
+
+[[restart]]
+  policy = "always"
+
+[[vm]]
+  size = "shared-cpu-2x"
+  memory = "2gb"
+
+[[mounts]]
+  source = "windmill_worker_cache"
+  destination = "/tmp/windmill"
