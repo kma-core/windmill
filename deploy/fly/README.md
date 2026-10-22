@@ -77,6 +77,32 @@ flyctl deploy -c fly.worker.toml --image ghcr.io/windmill-labs/windmill:main
 
 Server applies migrations on boot; the worker waits for the server to finish before picking up jobs.
 
+## PHP2Shell runtime update
+
+The fork's Dockerfile now copies PHP 8.3.36, the first fixed release in the 8.3
+branch, and checks that the binary runs and meets that version floor during build.
+See the [PHP2Shell upgrade guidance](https://www.php2shell.com/#upgrade-php).
+
+The Fly configs still use the upstream Windmill image. Merging the Dockerfile
+change does **not** update those images or the running workers. Before closing the
+incident:
+
+1. Build and publish this fork using the patching process below, or select an
+   upstream image verified to contain a patched PHP runtime. Record its immutable
+   image digest; do not assume the floating `main` tag contains the fix.
+2. Update the server and worker image references to the verified image and deploy
+   both apps, allowing active jobs to finish according to the normal rollout
+   procedure.
+3. Run `php -v` in every deployed worker machine and confirm PHP 8.3.36 or a later
+   patched release. Check any custom `PHP_PATH` override as well.
+4. Execute a PHP job through Windmill that returns `PHP_VERSION`, and confirm it
+   completes successfully on each worker group that runs PHP jobs. Verify normal
+   job execution and server health after rollout.
+
+Windmill runs PHP CLI jobs; this repository does not establish the PHP-FPM/web
+request attack path described in the advisory. The runtime update remains needed
+for affected PHP binaries.
+
 ## Backups
 
 Fly takes daily volume snapshots (5 retained by default). Ad-hoc:

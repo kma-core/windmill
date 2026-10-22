@@ -288,7 +288,9 @@ RUN bun install -g windmill-cli \
 RUN curl -fsSL https://claude.ai/install.sh | bash \
     && cp /root/.local/share/claude/versions/* /usr/bin/claude
 
-COPY --from=php:8.3.30-cli-bookworm /usr/local/bin/php /usr/bin/php
+COPY --from=php:8.3.36-cli-bookworm /usr/local/bin/php /usr/bin/php
+# Fail the build if the PHP2Shell fix is missing or the copied binary cannot run.
+RUN php -r 'exit(PHP_VERSION_ID >= 80336 && PHP_VERSION_ID < 80400 ? 0 : 1);'
 COPY --from=composer:2.9.5 /usr/bin/composer /usr/bin/composer
 
 # add the docker client to call docker from a worker if enabled
